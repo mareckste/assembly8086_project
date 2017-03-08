@@ -40,6 +40,9 @@ DATA ENDS
 
 extrn line_end: proc
 
+public handle
+public file_cont
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CODE SEGMENT PUBLIC
@@ -90,7 +93,7 @@ CODE SEGMENT PUBLIC
         mov dx,si
         int 21h
         RET
-    endp
+  endp
   ;;;;;;;;;;;;;; OPENS THE FILE WHICH NAME IS STORED IN BUFF
   open_file proc
     xor dx, dx
@@ -117,11 +120,14 @@ CODE SEGMENT PUBLIC
     lea dx, file_cont
     int 21h
     jc  opening_error
+
+
     ret
   endp
   ;;;;;;;;;;;;;; STORES THE FILE CONTENT 
   store_file proc
     xor cx, cx
+    xor dx, dx
     mov cx, ax ; poc precitanych do si
     lea si, file_cont
     mov ah, 0
@@ -208,6 +214,8 @@ start:
   
   option_4:
     call line_end
+    call check_enter
+    jmp terminate
   
   option_5:
     jmp terminate
@@ -216,7 +224,16 @@ start:
     write error_text, 0
     call check_enter
     jmp terminate
-end start
+
 CODE ENDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+public clear_screen
+public open_file
+public check_enter
+public read_file
+public close_file
+public store_file
+
+end start
