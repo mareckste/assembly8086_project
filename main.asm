@@ -55,6 +55,20 @@ ASSUME CS:CODE,DS:DATA,SS:STAK
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; ================== HELPER PROGRAM PROCEDURES ==============================
+  
+  ;;;;;;;;;;;;;; PRINTS THE FILE CONTENT ON THE SCREEN
+  read_file_cont proc
+    mov cx, file_length
+    mov si, 0
+    read:
+      mov dl, file_cont[ si ]
+      mov ah, 02h
+      int 21h
+
+      inc si
+      loop read
+    ret
+  endp
 
   ;;;;;;;;;;;;;; CLEARS THE SCREEN
   clear_screen proc
@@ -208,7 +222,8 @@ start:
     call read_file
     call store_file
     call close_file
-    write file_cont, 0
+    ;write file_cont, 0
+    call read_file_cont
     call check_enter
     jmp terminate
   
