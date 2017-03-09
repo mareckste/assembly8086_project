@@ -23,17 +23,20 @@ DATA SEGMENT PUBLIC
               db "$" 
               
   testtxt     db          "Testovaci$"
+  enter_alert db 10,13,   "Stlacte [ENTER] ak chcete pokracovat: $"
   error_text  db          "CHYBA: Musite zadat cislo od 1-5 !$"
   opening_error_text  db  "CHYBA: Subor sa nepodarilo otvorit$"
   closing_error_text  db  "CHYBA: Subor sa nepodarilo zatvorit$"
   file_text   db 10,      "Zadajte meno suboru, kt. chcete otvorit: $"
+  file_sz_t   db 10, 13,  "Velkost suboru je: $"
   buff        db 26         ; MAX NUMBER OF CHARACTERS ALLOWED (25).
               db ?          ; NUMBER OF CHARACTERS ENTERED BY USER.
               db 26 dup(0)  ; CHARACTERS ENTERED BY USER.
   handle      dw ?
-  file_cont   db 512 dup(?)
-  file_length db 4   dup('$')
+  file_cont   db 60000 dup(?)
+  file_length dw 0
   buffer      db 10 dup(?)
+  bf db 10 dup('$')
 DATA ENDS
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,11 +45,15 @@ extrn line_end: proc
 
 public handle
 public file_cont
+public file_length
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 CODE SEGMENT PUBLIC
-  ASSUME CS:CODE,DS:DATA,SS:STAK
+ASSUME CS:CODE,DS:DATA,SS:STAK
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; ================== HELPER PROGRAM PROCEDURES ==============================
 
   ;;;;;;;;;;;;;; CLEARS THE SCREEN
@@ -116,12 +123,12 @@ CODE SEGMENT PUBLIC
   read_file proc
     mov ah, 3fh
     mov bx, handle
-    mov cx, 512
+    mov cx, 60000
     lea dx, file_cont
     int 21h
     jc  opening_error
 
-
+    mov file_length, ax
     ret
   endp
   ;;;;;;;;;;;;;; STORES THE FILE CONTENT 
@@ -138,6 +145,7 @@ CODE SEGMENT PUBLIC
   endp
   ;;;;;;;;;;;;;; WAITS FOR ENTER TO BE PRESSED
   check_enter proc
+    write2 enter_alert, 0
     mov ah, 01h
     int 21h
     cmp al, 13
@@ -207,6 +215,8 @@ start:
   option_3:
     call open_file
     call read_file
+    mov ax, file_length
+    lea si, bf
     call convert
     call close_file
     call check_enter

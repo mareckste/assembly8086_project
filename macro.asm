@@ -4,3 +4,9 @@ write MACRO t, c
   mov ah, 09h
   int 21h
 endm
+
+write2 MACRO t, c
+  lea dx, t + c
+  mov ah, 09h
+  int 21h
+endm
