@@ -57,7 +57,37 @@ ASSUME CS:CODE,DS:DATA,SS:STAK
 ; ================== HELPER PROGRAM PROCEDURES ==============================
   
   ;;;;;;;;;;;;;; PRINTS THE FILE CONTENT ON THE SCREEN
-  read_file_cont proc
+
+  proc get_file_length
+    mov ah, 42H         ; move file ptr 
+    mov bx, handle      ; file handle
+    xor cx, cx          ; clear CX
+    xor dx, dx          ; 0 bytes to move
+    mov al, 2           ; relative to end
+    int 21H             ; move pointer to end. DX:AX = file size
+    jc opening_error2       ; error if CF = 1
+   
+    mov file_length, 0
+    add file_length, ax
+    add file_length, dx
+    ret
+  endp
+
+  proc orm
+    call open_file
+    call get_file_length
+    call close_file
+    ret
+  endp
+
+  opening_error2:
+    write opening_error_text, 0
+    call check_enter
+    jmp terminate
+
+  write_file_cont proc
+    xor cx, cx
+    xor si, si
     mov cx, file_length
     mov si, 0
     read:
@@ -67,6 +97,7 @@ ASSUME CS:CODE,DS:DATA,SS:STAK
 
       inc si
       loop read
+      xor si, si
     ret
   endp
 
@@ -135,21 +166,21 @@ ASSUME CS:CODE,DS:DATA,SS:STAK
   endp
   ;;;;;;;;;;;;;; READS FILE 
   read_file proc
+    xor ax, ax
     mov ah, 3fh
     mov bx, handle
     mov cx, 60000
     lea dx, file_cont
     int 21h
     jc  opening_error
-
-    mov file_length, ax
     ret
   endp
   ;;;;;;;;;;;;;; STORES THE FILE CONTENT 
   store_file proc
     xor cx, cx
     xor dx, dx
-    mov cx, ax ; poc precitanych do si
+    xor si, si
+    mov cx, file_length ;ax ; poc precitanych do si
     lea si, file_cont
     mov ah, 0
     add si, cx
@@ -216,28 +247,31 @@ start:
   option_1:
     call provide_file_name
     jmp show_menu
-  
+
   option_2:
+    call orm
+
     call open_file
     call read_file
     call store_file
     call close_file
-    ;write file_cont, 0
-    call read_file_cont
+    call write_file_cont
+    
     call check_enter
     jmp terminate
   
   option_3:
-    call open_file
-    call read_file
+    
+    call orm
     mov ax, file_length
     lea si, bf
     call convert
-    call close_file
+    
     call check_enter
     jmp terminate
   
   option_4:
+    call orm
     call line_end
     call check_enter
     jmp terminate

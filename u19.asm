@@ -113,18 +113,18 @@ endp
  proc convert
     ascii:
         mov bx, 10
-        mov dx,0            			; clear dx prior to dividing dx:ax by bx
+        mov dx, 0            			; clear dx prior to dividing dx:ax by bx
         div bx              			; divide ax by 10
-        add dx,48          				; add 48 to remainder -> get ascii char of num 
+        add dx, 48          				; add 48 to remainder -> get ascii char of num 
         dec si              			; store characters in reverse order
-        mov [si],dl
-        cmp ax,0            
+        mov [ si], dl
+        cmp ax, 0            
         jz  extt            			; if no remainder, we are done
         jmp ascii           			; otherwise repeat        
      extt:
         write2 count_text, 0
-        mov ah,9            			; print number
-        mov dx,si
+        mov ah, 9            			; print number
+        mov dx, si
         int 21h
         ret
   endp
